@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chat Pals</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:1rem;}
+#root{width:100%;max-width:480px;}
+.screen{background:#fff;border-radius:24px;padding:24px;margin-top:8px;box-shadow:0 8px 32px rgba(0,0,0,0.18);}
+.title{text-align:center;margin-bottom:20px;}
+.title h1{font-size:32px;font-weight:800;color:#5b21b6;}
+.title p{font-size:14px;color:#888;margin-top:4px;}
+.stars{font-size:22px;letter-spacing:4px;margin-bottom:4px;}
+.section-label{font-size:13px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.name-input{width:100%;padding:12px 14px;font-size:16px;border:2px solid #e0d7f7;border-radius:14px;outline:none;color:#222;margin-bottom:16px;}
+.name-input:focus{border-color:#7c3aed;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.sel-btn{padding:12px 6px;border-radius:14px;border:2px solid #e0d7f7;background:#faf7ff;cursor:pointer;text-align:center;font-family:inherit;transition:all .15s;}
+.sel-btn.sel{border-color:#7c3aed;background:#ede9fe;}
+.sel-btn .ico{font-size:24px;display:block;margin-bottom:4px;}
+.sel-btn .lbl{font-size:12px;font-weight:700;color:#5b21b6;}
+.sel-btn .sub{font-size:10px;color:#888;margin-top:2px;}
+.timer-opt{padding:10px 4px;border-radius:12px;border:2px solid #e0d7f7;background:#faf7ff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:#888;text-align:center;}
+.timer-opt.sel{border-color:#7c3aed;background:#ede9fe;color:#5b21b6;}
+.start-btn{width:100%;padding:14px;font-size:17px;font-weight:700;color:#fff;border:none;border-radius:16px;cursor:pointer;}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.lives{font-size:20px;letter-spacing:2px;}
+.hud-score{font-size:13px;font-weight:700;color:#7c3aed;}
+.timer-wrap{margin-bottom:12px;}
+.timer-bar{height:8px;background:#e0d7f7;border-radius:99px;overflow:hidden;}
+.timer-fill{height:100%;border-radius:99px;transition:width .9s linear;}
+.progress-bar{height:5px;background:#e0d7f7;border-radius:99px;margin-bottom:14px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:99px;transition:width .4s;}
+.mission-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.char-face-sm{font-size:30px;background:#ede9fe;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;}
+.char-name{font-size:14px;font-weight:700;color:#5b21b6;}
+.mission-lbl{font-size:11px;color:#888;}
+.chat-area{min-height:140px;margin-bottom:12px;}
+.bubble-wrap{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px;animation:fadeIn .3s ease;}
+.bubble-wrap.ai{flex-direction:row;}
+.bubble-wrap.user{flex-direction:row-reverse;}
+.bubble-avatar{font-size:20px;flex-shrink:0;}
+.bubble{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.5;max-width:85%;}
+.bubble.ai{background:#ede9fe;color:#3b0764;border-bottom-left-radius:4px;}
+.bubble.user{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-bottom-right-radius:4px;}
+.bubble.wrong-user{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-bottom-right-radius:4px;}
+.typing{display:flex;gap:4px;padding:10px 14px;background:#ede9fe;border-radius:18px;border-bottom-left-radius:4px;}
+.dot{width:7px;height:7px;background:#a855f7;border-radius:50%;animation:bounce .9s infinite;}
+.dot:nth-child(2){animation-delay:.15s;}
+.dot:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.reply-area{display:flex;flex-direction:column;gap:8px;}
+.reply-hint{font-size:12px;color:#aaa;margin-bottom:2px;text-align:center;}
+.reply-btn{padding:11px 15px;border-radius:14px;border:2px solid #e0d7f7;background:#faf7ff;cursor:pointer;font-size:14px;font-family:inherit;color:#3b0764;text-align:left;font-weight:500;transition:all .15s;}
+.reply-btn:hover{border-color:#7c3aed;background:#ede9fe;}
+.reply-btn:disabled{cursor:default;opacity:0.6;}
+.feedback-pop{text-align:center;padding:8px 0;animation:pop .35s ease;}
+@keyframes pop{0%{transform:scale(0);}70%{transform:scale(1.15);}100%{transform:scale(1);}}
+.feedback-emoji{font-size:32px;}
+.feedback-txt{font-size:13px;font-weight:700;margin-top:2px;}
+.loading-box{text-align:center;padding:40px 16px;}
+.spin{font-size:44px;animation:spin 1s linear infinite;display:inline-block;margin-bottom:14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-box p{color:#7c3aed;font-weight:600;font-size:15px;margin-bottom:6px;}
+.loading-box small{color:#aaa;font-size:13px;}
+.error-box{background:#fff1f2;border:2px solid #fca5a5;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px;}
+.error-box p{color:#dc2626;font-size:14px;margin-bottom:4px;}
+.error-box small{color:#888;font-size:12px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0;}
+.stat-card{background:#faf7ff;border-radius:14px;padding:12px 6px;text-align:center;}
+.stat-val{font-size:24px;font-weight:800;color:#7c3aed;}
+.stat-lbl{font-size:11px;color:#888;margin-top:2px;}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0 18px;}
+.badge{background:#fef3c7;border:2px solid #fde68a;border-radius:99px;padding:5px 13px;font-size:12px;font-weight:700;color:#92400e;}
+.big-btn{width:100%;padding:13px;font-size:15px;font-weight:700;border:none;border-radius:16px;cursor:pointer;margin-bottom:8px;}
+.exit-btn{background:none;border:none;font-size:13px;color:#aaa;cursor:pointer;padding:4px 8px;}
+.gameover{text-align:center;padding:8px 0;}
+.gameover .face{font-size:64px;margin-bottom:8px;}
+.gameover h2{font-size:24px;font-weight:800;color:#dc2626;margin-bottom:6px;}
+.gameover p{font-size:14px;color:#666;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+const CHARACTERS=[
+  {id:'zara',name:'Zara',emoji:'🤖',desc:'Friendly Robot'},
+  {id:'finn',name:'Finn',emoji:'🐬',desc:'Ocean Explorer'},
+  {id:'leo', name:'Leo', emoji:'🦁',desc:'Jungle King'},
+];
+const AGE_GROUPS=[
+  {id:'5-6', label:'Ages 5-6', emoji:'🌱',desc:'Simple & fun'},
+  {id:'7-9', label:'Ages 7-9', emoji:'🌟',desc:'Getting clever'},
+  {id:'10-13',label:'Ages 10-13',emoji:'🚀',desc:'Deep thinker'},
+];
+const TOPICS={
+  '5-6':['animals','colours','food','family','toys','weather','feelings','pets','nature','friendship','dinosaurs','the ocean','bugs','seasons','birds'],
+  '7-9':['space','oceans','dinosaurs','sports','books','music','environment','healthy habits','inventions','animal adaptations','friendship','weather','wild animals','robots','science'],
+  '10-13':['artificial intelligence','climate change','social media','creativity','space exploration','ocean conservation','mental health','future careers','technology','empathy','history','storytelling','leadership','science discoveries','communication'],
+};
+const TIMER_OPTIONS=[30,60,90,120];
+const MAX_LIVES=3;
+
+async function generateMission(ageGroup,charName,kidName){
+  const topicList=TOPICS[ageGroup];
+  const topic=topicList[Math.floor(Math.random()*topicList.length)];
+  const ageNote={'5-6':'aged 5 to 6. Use very simple short sentences. Be warm and playful.','7-9':'aged 7 to 9. Use friendly language with interesting facts.','10-13':'aged 10 to 13. Use thoughtful language and encourage deeper thinking.'}[ageGroup];
+  const prompt=`You are ${charName}, a friendly AI chat pal for children ${ageNote}
+The child is named ${kidName}. Have a fun chat about: ${topic}.
+
+IMPORTANT: This is a CHALLENGE game. Each step must have:
+- 2 good replies (scores 3 and 2, correct:true)
+- 1 clearly WRONG or silly reply (score:0, correct:false)
+
+Return ONLY raw JSON. No markdown. No code fences. No extra text.
+Do not use apostrophes or contractions. Write "do not" not "don't".
+Do not use double quotes inside string values.
+Shuffle the reply order so the wrong one is not always last.
+
+JSON format (5 steps, 3 replies each):
+{"title":"short fun title","topic":"${topic}","steps":[{"ai":"message","replies":[{"text":"reply","score":3,"reaction":"reaction","correct":true},{"text":"reply","score":2,"reaction":"reaction","correct":true},{"text":"wrong reply","score":0,"reaction":"Oops! That was not right. Keep going!","correct":false}]},{"ai":"message","replies":[{"text":"reply","score":3,"reaction":"reaction","correct":true},{"text":"reply","score":2,"reaction":"reaction","correct":true},{"text":"wrong reply","score":0,"reaction":"Oops reaction","correct":false}]},{"ai":"message","replies":[{"text":"reply","score":3,"reaction":"reaction","correct":true},{"text":"reply","score":2,"reaction":"reaction","correct":true},{"text":"wrong reply","score":0,"reaction":"Oops reaction","correct":false}]},{"ai":"message","replies":[{"text":"reply","score":3,"reaction":"reaction","correct":true},{"text":"reply","score":2,"reaction":"reaction","correct":true},{"text":"wrong reply","score":0,"reaction":"Oops reaction","correct":false}]},{"ai":"message","replies":[{"text":"reply","score":3,"reaction":"reaction","correct":true},{"text":"reply","score":2,"reaction":"reaction","correct":true},{"text":"wrong reply","score":0,"reaction":"Oops reaction","correct":false}]}]}`;
+
+  const headers={'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'};
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers,
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1800,messages:[{role:'user',content:prompt}]}),
+  });
+  if(!res.ok){const t=await res.text();throw new Error('API '+res.status+': '+t.slice(0,100));}
+  const data=await res.json();
+  const raw=(data.content||[]).find(b=>b.type==='text')?.text||'';
+  let cleaned=raw.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  const s=cleaned.indexOf('{'),e=cleaned.lastIndexOf('}');
+  if(s<0||e<0)throw new Error('No JSON found');
+  cleaned=cleaned.slice(s,e+1).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'');
+  let parsed;
+  try{parsed=JSON.parse(cleaned);}catch(err){throw new Error('JSON parse failed: '+err.message);}
+  if(!parsed||!Array.isArray(parsed.steps)||parsed.steps.length<3)throw new Error('Mission missing steps');
+  return parsed;
+}
+
+function App(){
+  const [phase,setPhase]=useState('start');
+  const [nameInput,setNameInput]=useState('');
+  const [kidName,setKidName]=useState('');
+  const [ageGroup,setAgeGroup]=useState('');
+  const [charId,setCharId]=useState('');
+  const [timerSec,setTimerSec]=useState(90);
+  const [mission,setMission]=useState(null);
+  const [errMsg,setErrMsg]=useState('');
+  const [stepIdx,setStepIdx]=useState(0);
+  const [chatLog,setChatLog]=useState([]);
+  const [showReplies,setShowReplies]=useState(false);
+  const [typing,setTyping]=useState(false);
+  const [locked,setLocked]=useState(false);
+  const [score,setScore]=useState(0);
+  const [lives,setLives]=useState(MAX_LIVES);
+  const [timeLeft,setTimeLeft]=useState(90);
+  const [feedback,setFeedback]=useState(null);
+  const chatEndRef=useRef(null);
+  const missionRef=useRef(null);
+  const stepRef=useRef(0);
+  const livesRef=useRef(MAX_LIVES);
+  const timerRef=useRef(null);
+  const char=CHARACTERS.find(c=>c.id===charId)||CHARACTERS[0];
+
+  useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[chatLog,typing,showReplies,feedback]);
+
+  const handleTimeout=useCallback(()=>{
+    const m=missionRef.current;
+    const idx=stepRef.current;
+    if(!m)return;
+    setLocked(true);setShowReplies(false);
+    const newLives=livesRef.current-1;
+    livesRef.current=newLives;
+    setLives(newLives);
+    setFeedback({emoji:'⏰',txt:'Time is up! You lost a heart!',color:'#dc2626'});
+    setChatLog(l=>[...l,{role:'user',text:'Time ran out!',isWrong:true}]);
+    setTimeout(()=>setFeedback(null),1500);
+    if(newLives<=0){setTimeout(()=>setPhase('gameover'),1800);return;}
+    const correctReply=m.steps[idx].replies.find(r=>r.correct&&r.score===3)||m.steps[idx].replies.find(r=>r.correct);
+    const reaction=correctReply?'Time is up! The best answer was: '+correctReply.text+'. Keep going!':'Time is up! Keep going!';
+    setTimeout(()=>{
+      setTyping(true);
+      setTimeout(()=>{
+        setTyping(false);
+        setChatLog(l=>[...l,{role:'ai',text:reaction}]);
+        advanceStep(m,idx);
+      },1200);
+    },1800);
+  },[]);
+
+  useEffect(()=>{
+    if(!showReplies||locked)return;
+    setTimeLeft(timerSec);
+    timerRef.current=setInterval(()=>{
+      setTimeLeft(t=>{
+        if(t<=1){clearInterval(timerRef.current);handleTimeout();return 0;}
+        return t-1;
+      });
+    },1000);
+    return()=>clearInterval(timerRef.current);
+  },[showReplies,locked,timerSec,handleTimeout]);
+
+  const advanceStep=(m,idx)=>{
+    const nextIdx=idx+1;
+    if(nextIdx>=m.steps.length){setTimeout(()=>setPhase('result'),700);}
+    else{stepRef.current=nextIdx;setStepIdx(nextIdx);setTimeout(()=>{setLocked(false);showAiMsg(m,nextIdx);},500);}
+  };
+
+  const showAiMsg=useCallback((m,idx)=>{
+    if(!m||!m.steps||idx>=m.steps.length)return;
+    const txt=m.steps[idx].ai;
+    setTyping(true);
+    setTimeout(()=>{
+      setTyping(false);
+      setChatLog(l=>[...l,{role:'ai',text:txt}]);
+      setTimeout(()=>setShowReplies(true),300);
+    },Math.min(700+txt.length*11,1800));
+  },[]);
+
+  const startGame=async()=>{
+    if(!ageGroup||!charId){alert('Please pick an age group and a Chat Pal!');return;}
+    const name=nameInput.trim()||'Friend';
+    setKidName(name);setErrMsg('');setPhase('loading');
+    try{
+      const m=await generateMission(ageGroup,char.name,name);
+      missionRef.current=m;stepRef.current=0;livesRef.current=MAX_LIVES;
+      setMission(m);setStepIdx(0);setScore(0);setLives(MAX_LIVES);
+      setChatLog([]);setShowReplies(false);setLocked(false);setFeedback(null);
+      setPhase('chat');
+      setTimeout(()=>showAiMsg(m,0),400);
+    }catch(e){console.error(e);setErrMsg(e.message||'Something went wrong');setPhase('start');}
+  };
+
+  const pickReply=(reply)=>{
+    if(locked)return;
+    clearInterval(timerRef.current);
+    setLocked(true);setShowReplies(false);
+    const m=missionRef.current;
+    const sIdx=stepRef.current;
+    const isCorrect=reply.correct!==false&&reply.score>0;
+    setChatLog(l=>[...l,{role:'user',text:reply.text,isWrong:!isCorrect}]);
+    if(isCorrect){
+      setScore(s=>s+reply.score);
+      setFeedback({emoji:'⭐',txt:reply.score===3?'Amazing answer!':'Good job!',color:'#16a34a'});
+    }else{
+      const newLives=livesRef.current-1;
+      livesRef.current=newLives;setLives(newLives);
+      setFeedback({emoji:'💔',txt:'Wrong answer! Lost a heart!',color:'#dc2626'});
+      if(newLives<=0){
+        setTimeout(()=>setFeedback(null),1400);
+        setTimeout(()=>{
+          setTyping(true);
+          setTimeout(()=>{setTyping(false);setChatLog(l=>[...l,{role:'ai',text:reply.reaction}]);setTimeout(()=>setPhase('gameover'),900);},1000);
+        },1500);
+        return;
+      }
+    }
+    setTimeout(()=>setFeedback(null),1400);
+    setTimeout(()=>{
+      setTyping(true);
+      setTimeout(()=>{
+        setTyping(false);
+        setChatLog(l=>[...l,{role:'ai',text:reply.reaction}]);
+        advanceStep(m,sIdx);
+      },Math.min(500+reply.reaction.length*11,1800));
+    },1500);
+  };
+
+  const exitGame=()=>{clearInterval(timerRef.current);setPhase('start');setMission(null);setErrMsg('');};
+
+  const playAgain=async()=>{
+    clearInterval(timerRef.current);setErrMsg('');setPhase('loading');
+    try{
+      const m=await generateMission(ageGroup,char.name,kidName);
+      missionRef.current=m;stepRef.current=0;livesRef.current=MAX_LIVES;
+      setMission(m);setStepIdx(0);setScore(0);setLives(MAX_LIVES);
+      setChatLog([]);setShowReplies(false);setLocked(false);setFeedback(null);
+      setPhase('chat');
+      setTimeout(()=>showAiMsg(m,0),400);
+    }catch(e){setErrMsg(e.message||'Something went wrong');setPhase('result');}
+  };
+
+  const timerColor=timeLeft>timerSec*0.5?'#7c3aed':timeLeft>timerSec*0.25?'#f59e0b':'#dc2626';
+  const timerPct=(timeLeft/timerSec)*100;
+
+  if(phase==='loading')return(
+    <div className="screen">
+      <div className="loading-box">
+        <div className="spin">🧠</div>
+        <p>{char.emoji} {char.name} is thinking...</p>
+        <small>Creating a fresh challenge for {kidName||'you'}!</small>
+      </div>
+    </div>
+  );
+
+  if(phase==='start')return(
+    <div className="screen">
+      <div className="title">
+        <div className="stars">⭐🌟✨</div>
+        <h1>Chat Pals</h1>
+        <p>Challenge Mode — ❤️❤️❤️ 3 Lives · ⏱️ {timerSec}s Timer</p>
+      </div>
+      {errMsg&&<div className="error-box"><p>Oops! {errMsg}</p><small>Check your internet and try again.</small></div>}
+      <div className="section-label">Your name</div>
+      <input className="name-input" value={nameInput} onChange={e=>setNameInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&startGame()} placeholder="Enter your name..."/>
+      <div className="section-label">Age group</div>
+      <div className="grid3">
+        {AGE_GROUPS.map(g=>(
+          <button key={g.id} className={`sel-btn${ageGroup===g.id?' sel':''}`} onClick={()=>setAgeGroup(g.id)}>
+            <span className="ico">{g.emoji}</span><span className="lbl">{g.label}</span><span className="sub">{g.desc}</span>
+          </button>
+        ))}
+      </div>
+      <div className="section-label">Timer per question</div>
+      <div className="grid4">
+        {TIMER_OPTIONS.map(t=>(
+          <button key={t} className={`timer-opt${timerSec===t?' sel':''}`} onClick={()=>setTimerSec(t)}>{t}s</button>
+        ))}
+      </div>
+      <div className="section-label">Choose your Chat Pal</div>
+      <div className="grid3">
+        {CHARACTERS.map(c=>(
+          <button key={c.id} className={`sel-btn${charId===c.id?' sel':''}`} onClick={()=>setCharId(c.id)}>
+            <span className="ico">{c.emoji}</span><span className="lbl">{c.name}</span><span className="sub">{c.desc}</span>
+          </button>
+        ))}
+      </div>
+      <button className="start-btn" onClick={startGame}
+        style={{background:ageGroup&&charId?'linear-gradient(135deg,#7c3aed,#a855f7)':'#ccc',cursor:ageGroup&&charId?'pointer':'not-allowed'}}>
+        {ageGroup&&charId?'Start Challenge! 🚀':'Pick age group and pal first'}
+      </button>
+    </div>
+  );
+
+  if(phase==='chat'&&mission)return(
+    <div className="screen">
+      <div className="hud">
+        <div className="lives">{Array.from({length:MAX_LIVES}).map((_,i)=><span key={i}>{i<lives?'❤️':'🖤'}</span>)}</div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <span className="hud-score">⭐ {score}</span>
+          <button className="exit-btn" onClick={exitGame}>✕ Exit</button>
+        </div>
+      </div>
+      <div className="timer-wrap">
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:timerColor,fontWeight:700,marginBottom:4}}>
+          <span>⏱️ Time</span><span>{timeLeft}s</span>
+        </div>
+        <div className="timer-bar"><div className="timer-fill" style={{width:timerPct+'%',background:timerColor}}/></div>
+      </div>
+      <div className="mission-header">
+        <div className="char-face-sm">{char.emoji}</div>
+        <div><div className="char-name">{char.name}</div><div className="mission-lbl">{mission.title} · Round {stepIdx+1}/{mission.steps.length}</div></div>
+      </div>
+      <div className="progress-bar"><div className="progress-fill" style={{width:`${(stepIdx/mission.steps.length)*100}%`}}/></div>
+      <div className="chat-area">
+        {chatLog.map((msg,i)=>(
+          <div key={i} className={`bubble-wrap ${msg.role}`}>
+            {msg.role==='ai'&&<span className="bubble-avatar">{char.emoji}</span>}
+            <div className={`bubble ${msg.role==='user'?(msg.isWrong?'wrong-user':'user'):'ai'}`}>{msg.text}</div>
+            {msg.role==='user'&&<span className="bubble-avatar">🧒</span>}
+          </div>
+        ))}
+        {typing&&<div className="bubble-wrap ai"><span className="bubble-avatar">{char.emoji}</span><div className="typing"><div className="dot"/><div className="dot"/><div className="dot"/></div></div>}
+        {feedback&&<div className="feedback-pop" style={{color:feedback.color}}><div className="feedback-emoji">{feedback.emoji}</div><div className="feedback-txt">{feedback.txt}</div></div>}
+        <div ref={chatEndRef}/>
+      </div>
+      {showReplies&&mission.steps[stepIdx]&&(
+        <div className="reply-area">
+          <div className="reply-hint">Pick the best reply! 👇</div>
+          {mission.steps[stepIdx].replies.map((r,i)=>(
+            <button key={i} className="reply-btn" onClick={()=>pickReply(r)} disabled={locked}>{r.text}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if(phase==='gameover')return(
+    <div className="screen">
+      <div className="gameover">
+        <div className="face">💔</div>
+        <h2>Game Over!</h2>
+        <p>{kidName}, you ran out of hearts! Better luck next time!</p>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,margin:'14px 0'}}>
+          <div className="stat-card"><div className="stat-val">{score}</div><div className="stat-lbl">Stars earned</div></div>
+          <div className="stat-card"><div className="stat-val">{stepIdx+1}/{mission?.steps?.length||5}</div><div className="stat-lbl">Rounds done</div></div>
+        </div>
+      </div>
+      <button className="big-btn" onClick={playAgain} style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff'}}>Try Again! 💪</button>
+      <button className="big-btn" onClick={exitGame} style={{background:'#ede9fe',color:'#5b21b6'}}>Change Settings 🔧</button>
+    </div>
+  );
+
+  if(phase==='result'&&mission){
+    const max=mission.steps.length*3;
+    const pct=Math.round((score/max)*100);
+    const verdict=pct>=90?'Unbeatable! 🏆':pct>=70?'Champion! 🌟':pct>=50?'Well done! 👍':'Good effort! 💪';
+    return(
+      <div className="screen" style={{textAlign:'center'}}>
+        <div style={{fontSize:56,marginBottom:6}}>{char.emoji}</div>
+        <div style={{fontSize:20,fontWeight:800,color:'#5b21b6',marginBottom:4}}>{kidName}, {verdict}</div>
+        <div style={{fontSize:13,color:'#888',marginBottom:4}}>Topic: {mission.topic}</div>
+        <div className="stat-grid">
+          <div className="stat-card"><div className="stat-val">{score}</div><div className="stat-lbl">Stars</div></div>
+          <div className="stat-card"><div className="stat-val">{pct}%</div><div className="stat-lbl">Score</div></div>
+          <div className="stat-card"><div className="stat-val">{Array.from({length:lives}).map(()=>'❤️').join('')||'💔'}</div><div className="stat-lbl">Lives left</div></div>
+        </div>
+        <div className="badge-row">
+          {pct>=90&&<span className="badge">🏆 Perfect!</span>}
+          {pct>=70&&<span className="badge">💬 Great Chatter</span>}
+          {lives===MAX_LIVES&&<span className="badge">🛡️ No Lives Lost</span>}
+          {lives>0&&<span className="badge">✅ Mission Complete</span>}
+          <span className="badge">🌟 Curious Mind</span>
+        </div>
+        {errMsg&&<div className="error-box"><p>{errMsg}</p></div>}
+        <button className="big-btn" onClick={playAgain} style={{background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff'}}>New Mission! 🎲</button>
+        <button className="big-btn" onClick={exitGame} style={{background:'#ede9fe',color:'#5b21b6'}}>Change Settings 🔧</button>
+      </div>
+    );
+  }
+  return null;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
